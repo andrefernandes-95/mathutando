@@ -1,10 +1,15 @@
 {
-  "name": "mathutando-monorepo",
+  "name": "mathutando",
   "private": true,
-  "workspaces": ["apps/web"],
+  "workspaces": ["apps/web", "packages/contracts"],
   "scripts": {
-    "dev:web": "npm run dev --workspace @mathutando/web",
-    "build:web": "npm run build --workspace @mathutando/web",
-    "test:web": "npm run test --workspace @mathutando/web"
-  }
+    "dev": "npm run dev --workspace @mathutando/web",
+    "build": "npm run build --workspace @mathutando/web",
+    "test": "npm run test --workspace @mathutando/contracts && npm run test --workspace @mathutando/web",
+    "typecheck": "npm run typecheck --workspace @mathutando/web",
+    "dev:web": "npm run dev",
+    "build:web": "npm run build",
+    "test:web": "npm run test"
+  },
+  "engines": { "node": ">=22.12.0" }
 }

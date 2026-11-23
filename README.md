@@ -1,81 +1,70 @@
 # Mathutando
 
-Base de uma plataforma colaborativa para **estudar, praticar e criar exercícios de matemática**. Monorepo com frontend React, backend Java e PostgreSQL.
+Plataforma colaborativa para **estudar, praticar e partilhar exercícios interativos de matemática**, começando por uma biblioteca de Matemática A.
 
-## Estrutura
+## Arquitetura (MVP)
 
 ```text
-apps/
-  web/                React + TypeScript + Vite (biblioteca)
-  api/                Java 21 + Spring Boot (API REST)
-    src/main/java/    módulos catalog / exercises / config
-    src/main/resources/db/migration/ (Flyway)
-infra/compose.yaml    PostgreSQL para desenvolvimento
-docs/adr/             decisões e limites arquiteturais
-archive/poc/          protótipo antigo, preservado sem dependências no runtime
-.github/workflows/    CI e GitHub Pages
+apps/web/             React + TypeScript + Vite (Cloudflare Pages)
+packages/contracts/   Contratos tipados e validação Zod dos exercícios
+supabase/migrations/  PostgreSQL, políticas RLS, exemplos do catálogo
+docs/adr/             Decisões de arquitetura
+archive/poc/          Protótipo original preservado
 ```
 
-## Arrancar localmente
+**Não há backend Java nem Railway na arquitetura ativa.** Supabase fornece autenticação, PostgreSQL e API de dados; as permissões de acesso são aplicadas na base de dados (RLS). A validação e a futura correção de respostas serão protegidas no servidor, nunca confiadas ao browser.
 
-Requer **Node 22**, **Java 21**, **Maven 3.9+**, **Docker/Compose** (ou PostgreSQL local).
+## Instalação
+
+Requer Node.js 22.
 
 ```bash
-# terminal 1: base de dados
-# na raiz do repositório
-docker compose -f infra/compose.yaml up -d
-
-# terminal 2: backend (as migrações correm no arranque)
-cd apps/api
-mvn spring-boot:run
-
-# terminal 3: frontend (na raiz)
 npm install
-npm run dev:web
+cp apps/web/.env.example apps/web/.env.local
+# Preencher VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY
+npm run dev
 ```
 
-- Web: http://localhost:5173
-- API: http://localhost:8080/api/v1/topics
-- Exercícios: http://localhost:8080/api/v1/exercises
-- Health: http://localhost:8080/actuator/health
+Sem credenciais, a interface mostra um **catálogo ilustrativo** claramente marcado como demonstração; contas, posts, comentários e ratings ficam indisponíveis.
 
-O Vite encaminha `/api` para `localhost:8080` no desenvolvimento, sem hardcoding de URL no UI.
+## Ligar a um projeto Supabase
 
-## Testes
+1. Criar um projeto gratuito em https://supabase.com/dashboard (região europeia, se adequado).
+2. Abrir **SQL Editor** e executar, por ordem, os ficheiros `supabase/migrations/*.sql`, ou aplicar as migrações com a CLI Supabase. A segunda migração insere um exercício demonstrativo no catálogo.
+3. Em **Authentication > URL Configuration**, definir o URL da app e adicionar os URLs de redirecionamento locais e de produção.
+4. Em **Connect / Project Settings > API**, copiar **Project URL** e **publishable key** para `apps/web/.env.local`. Nunca utilizar secret key ou `service_role` no frontend.
+5. Reiniciar `npm run dev`, testar catálogo e login por email. O envio de emails pode estar limitado no plano gratuito.
+
+## Cloudflare Pages
+
+Ligar este repositório em **Workers & Pages > Create > Pages > Connect to Git**:
+
+- Branch de produção: `main`.
+- **Root directory:** `/` (raiz do repositório).
+- **Build command:** `npm install && npm run build`.
+- **Build output directory:** `apps/web/dist`.
+- **Environment variables:** `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` (publicável, não secret).
+
+Configurar o URL do novo Pages como origem e URL de redirecionamento nas definições de Auth do Supabase. **Este commit não cria projetos externos nem publica automaticamente a aplicação na Cloudflare.**
+
+## Comandos
 
 ```bash
-npm run test:web
-npm run build:web
-cd apps/api && mvn test
+npm run dev
+npm run build
+npm test
+npm run typecheck
 ```
 
-CI executa testes e build, incluindo um PostgreSQL real para teste de integração futuro. Não existem credenciais de produção no repositório.
+## Funcionalidades deste commit
 
-## Railway
+- Biblioteca com filtros de ano e tópico, leitura real do Supabase e pré-visualização de exercícios.
+- Autenticação por email OTP (link de acesso) e saída de sessão.
+- Feed mínimo com publicação de um exercício existente e texto; comentários e rating de dificuldade associados a um exercício, para utilizadores autenticados.
+- Contrato público extensível de exercício com Zod; definições públicas **não incluem soluções**.
+- SQL com tópicos, exercícios versionados, tentativas futuras, posts, comentários, ratings, identidade e verificação futura de professores; políticas RLS explícitas.
+- CI de TypeScript/build/testes.
 
-1. Criar um serviço **PostgreSQL** no projeto Railway.
-2. Criar um segundo serviço a partir do mesmo repositório, com **Root Directory = `apps/api`**. O Dockerfile está nessa pasta.
-3. No serviço da API, definir variáveis `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` usando **referências de variáveis Railway** do serviço PostgreSQL, como `${{Postgres.PGHOST}}` (ajustar ao nome real do serviço). Usar o **host privado**; não publicar a BD.
-4. Definir `WEB_ORIGIN` com o domínio HTTPS real do frontend, sem `/` final.
-5. Gerar domínio público apenas para a API. `PORT` é fornecida pelo Railway e lida pela aplicação.
+## Limites conscientes
 
-O serviço API usa `apps/api/Dockerfile` e `apps/api/railway.json`. O frontend pode ser publicado gratuitamente no GitHub Pages pela Action, após ativar **Settings → Pages → GitHub Actions**. Se a API estiver no Railway, configurar `VITE_API_BASE_URL` para o seu domínio HTTPS na build do frontend (em GitHub Actions: variável de repositório `VITE_API_BASE_URL`).
-
-**Importante:** configurar os serviços no dashboard Railway é manual; este commit não cria instâncias nem acarreta custos. O Railway cobra recursos conforme o plano.
-
-## O que está implementado
-
-- Backend de leitura do catálogo de tópicos e exercícios publicados, com filtros por `year` e `topicId`.
-- Migração Flyway com esquema inicial e uma demonstração de exercício de probabilidades.
-- Frontend de biblioteca que lê a API; estados de loading/erro/vazio; visualização da definição de uma interação.
-- Validação extensível do contrato de exercício na API (para futura criação por aluno, professor ou IA).
-- Modelação relacional de posts, comentários, ratings e tentativas, **sem expor endpoints de escrita**.
-- Testes unitários de contrato no Java e testes simples de validação no frontend.
-
-## Por fazer (deliberadamente)
-
-Autenticação, criação de exercícios, publicação, comentários, ratings, execução de tentativas e correção segura, verificação de professores, feed e moderação. O schema oferece um ponto de partida — não representa funcionalidades prontas.
-
-## Segurança e contexto escolar
-
-A definição de demonstração é pública e inclui a resposta correta. **Antes do lançamento de exercícios avaliados**, separar o contrato de autor (com gabarito) do contrato do aluno (sem gabarito) e implementar correção no servidor. Não disponibilizar escrita pública nem guardar dados de menores antes de definir identidade e privacidade.
+**Ainda não há Exercise Studio visual nem motor de resolução/correção.** O feed e os comentários são apenas uma base técnica e não devem ser disponibilizados a menores sem moderação, mecanismos de denúncia e uma política de proteção de dados apropriada. A verificação de professores é um estado reservado ao futuro fluxo administrativo, sem autoatribuição pelo utilizador.

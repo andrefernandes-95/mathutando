@@ -1,3 +1,5 @@
+# SUPERSEDED BY ADR 0002 — Supabase + Cloudflare Pages
+
 # ADR 0001 — Monorepo, monólito modular e conteúdo versionado
 
 **Estado:** aceite para o bootstrap, rever depois do primeiro Creation Studio.

@@ -1,21 +1,10 @@
-export type Topic = {
-  id: string;
-  parentId: string | null;
-  slug: string;
-  name: string;
-  schoolYear: number | null;
-  sortOrder: number;
-};
+import type { ExerciseDefinition } from '@mathutando/contracts';
 
+export type Topic = { id: string; parentId: string | null; slug: string; name: string; schoolYear: number | null; sortOrder: number };
 export type ExerciseSummary = {
-  id: string;
-  title: string;
-  summary: string;
-  topicId: string;
-  authorDifficulty: number;
-  currentVersion: number;
-  publishedAt: string;
+  id: string; title: string; summary: string; topicId: string; authorDifficulty: number;
+  currentVersion: number; publishedAt: string | null; authorId: string | null;
 };
-
-/** Apenas um contrato de visualização. O contrato do autor inclui as respostas. */
-export type ExerciseDetail = { exercise: ExerciseSummary; definition: unknown };
+export type ExerciseDetail = { exercise: ExerciseSummary; definition: ExerciseDefinition };
+export type ExerciseComment = { id: string; authorId: string; authorName: string; body: string; createdAt: string };
+export type DifficultyStats = { count: number; average: number | null; myRating: number | null };
