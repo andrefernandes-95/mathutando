@@ -1,0 +1,17 @@
+.auth-dialog {
+  width: min(27rem, calc(100% - 2rem));
+  max-height: calc(100% - 2rem);
+  padding: 0;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: var(--sheet);
+}
+.auth-dialog::backdrop { background: #15262cb8; }
+.auth-content { position: relative; padding: clamp(1.2rem, 5vw, 2rem); }
+.auth-content h2 { margin: 0 2rem .5rem 0; font-size: clamp(1.8rem, 5vw, 2.35rem); }
+.auth-content > p { color: var(--quiet); overflow-wrap: anywhere; }
+.auth-close { position: absolute; inset: .45rem .45rem auto auto; }
+.auth-content form { margin-top: 1.2rem; display: grid; gap: .35rem; justify-items: start; }
+.auth-content input { width: 100%; }
+.auth-content .primary { margin-top: .3rem; }
+.auth-content .inline-error { color: var(--accent-dark); }

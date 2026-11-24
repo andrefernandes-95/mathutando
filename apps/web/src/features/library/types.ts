@@ -8,3 +8,8 @@ export type ExerciseSummary = {
 export type ExerciseDetail = { exercise: ExerciseSummary; definition: ExerciseDefinition };
 export type ExerciseComment = { id: string; authorId: string; authorName: string; body: string; createdAt: string };
 export type DifficultyStats = { count: number; average: number | null; myRating: number | null };
+
+export type Catalog = {
+  topics: Topic[];
+  exercises: ExerciseSummary[];
+};

@@ -1,16 +1,24 @@
 import { useEffect, useState } from 'react';
-import type { User } from '@supabase/supabase-js';
-import { supabase } from '../../shared/supabase';
+import { endSession, observeSession } from './api';
 
-export function useAuth(){
-  const [user,setUser]=useState<User|null>(null);
-  const [ready,setReady]=useState(!supabase);
-  useEffect(()=>{
-    if(!supabase)return;
-    let mounted=true;
-    supabase.auth.getUser().then(({data})=>{if(mounted){setUser(data.user);setReady(true);}}).catch(()=>{if(mounted)setReady(true);});
-    const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>{if(mounted){setUser(session?.user??null);setReady(true);}});
-    return ()=>{mounted=false;subscription.unsubscribe();};
-  },[]);
-  return {user,ready};
+export function useAuth() {
+  const [userId, setUserId] = useState<string | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => observeSession(setUserId), []);
+
+  async function signOut() {
+    setSigningOut(true);
+    setError('');
+    try {
+      await endSession();
+    } catch {
+      setError('Não foi possível terminar a sessão. Tenta novamente.');
+    } finally {
+      setSigningOut(false);
+    }
+  }
+
+  return { userId, signingOut, error, signOut };
 }

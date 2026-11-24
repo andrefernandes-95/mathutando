@@ -1,0 +1,17 @@
+.feed-page { max-width: var(--reading-width); margin-inline: auto; padding-top: clamp(2rem, 5vw, 4.3rem); }
+.feed-header { margin-bottom: 1.4rem; }
+.feed-header h1 { font-size: clamp(2.4rem, 5.8vw, 4.25rem); }
+.feed-header p { color: var(--quiet); margin-top: .75rem; }
+.feed-composer, .feed-post { border-top: 1px solid var(--line); padding-block: 1rem; }
+.feed-composer h2 { margin-bottom: .7rem; }
+.feed-composer form { display: grid; gap: .45rem; }
+.feed-composer select { width: 100%; }
+.feed-composer label:not(:first-child) { margin-top: .3rem; }
+.feed-composer .primary { justify-self: start; }
+.form-actions { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.form-actions small { color: var(--quiet); }
+.feed-author { display: flex; flex-wrap: wrap; gap: .3rem .6rem; align-items: baseline; }
+.feed-author time { color: var(--quiet); font-size: .85rem; }
+.feed-post > p { margin-top: .45rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.shared-exercise { margin-top: .65rem; border-left: 2px solid var(--line); padding-left: .8rem; }
+.shared-exercise p { color: var(--quiet); font-size: .92rem; }

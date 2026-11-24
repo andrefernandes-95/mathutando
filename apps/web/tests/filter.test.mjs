@@ -1,14 +1,37 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
-// Espelhar apenas o algoritmo de navegação em JS para teste independente do build TS.
-function descendants(topics, root) {
- const children = new Map();
- for (const t of topics) if (t.parentId) children.set(t.parentId, [...(children.get(t.parentId) ?? []), t.id]);
- const result = [], visited = new Set();
- function visit(id) { if(visited.has(id)) return; visited.add(id); result.push(id); for(const child of children.get(id) ?? []) visit(child); }
- visit(root); return result;
-}
-test('filtro por tópico cobre descendentes e ignora ciclos defensivamente', () => {
- const data = [{id:'a',parentId:null},{id:'b',parentId:'a'},{id:'c',parentId:'b'},{id:'d',parentId:null}];
- assert.deepEqual(descendants(data,'a'),['a','b','c']);
+import test from 'node:test';
+import { descendantIds, filterExercises } from '../src/features/library/filter.ts';
+
+const topics = [
+  { id: 'prob', parentId: null, name: 'Probabilidades', schoolYear: 12 },
+  { id: 'cond', parentId: 'prob', name: 'Probabilidade condicionada', schoolYear: 12 },
+  { id: 'geo', parentId: null, name: 'Geometria', schoolYear: 11 },
+];
+const exercises = [
+  { id: 'a', topicId: 'prob', title: 'Uma moeda', summary: 'Lança a moeda três vezes.' },
+  { id: 'b', topicId: 'cond', title: 'O grupo de referência', summary: 'Interpreta «sabendo que».' },
+  { id: 'c', topicId: 'geo', title: 'O grupo de referência', summary: 'Localiza o ponto no plano.' },
+];
+const catalog = { topics, exercises };
+
+test('navega pelos descendentes e termina mesmo se os tópicos formarem um ciclo', () => {
+  assert.deepEqual(descendantIds(topics, 'prob'), ['prob', 'cond']);
+  const cycle = [{ id: 'a', parentId: 'b' }, { id: 'b', parentId: 'a' }];
+  assert.deepEqual(descendantIds(cycle, 'a'), ['a', 'b']);
+});
+
+test('combina ano, tópico ancestral e pesquisa sem exigir acentos', () => {
+  assert.deepEqual(
+    filterExercises(catalog, { year: 12, topicId: 'prob', query: ' REFERENCIA   condicionada ' }).map(item => item.id),
+    ['b'],
+  );
+  assert.deepEqual(filterExercises(catalog, { year: 11, topicId: 'prob', query: '' }), []);
+});
+
+test('pesquisa pelo resumo ou pelo nome do tópico e mantém a ordem do catálogo', () => {
+  assert.deepEqual(
+    filterExercises(catalog, { year: null, topicId: '', query: 'plano' }).map(item => item.id),
+    ['c'],
+  );
+  assert.deepEqual(filterExercises(catalog, { year: null, topicId: '', query: '   ' }), exercises);
 });

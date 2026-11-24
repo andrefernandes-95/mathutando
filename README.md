@@ -14,6 +14,8 @@ archive/poc/          Protótipo original preservado
 
 **Não há backend Java nem Railway na arquitetura ativa.** Supabase fornece autenticação, PostgreSQL e API de dados; as permissões de acesso são aplicadas na base de dados (RLS). A validação e a futura correção de respostas serão protegidas no servidor, nunca confiadas ao browser.
 
+Consulta [a arquitetura e o backend](docs/architecture.md), [as regras de engenharia](AGENTS.md) e [o estudo de referências e design](docs/design/market-study.md).
+
 ## Instalação
 
 Requer Node.js 22.
@@ -25,7 +27,22 @@ cp apps/web/.env.example apps/web/.env.local
 npm run dev
 ```
 
-Sem credenciais, a interface mostra um **catálogo ilustrativo** claramente marcado como demonstração; contas, posts, comentários e ratings ficam indisponíveis.
+Sem credenciais, a interface mostra um **catálogo de demonstração**. As contas, publicações, comentários e avaliações ficam indisponíveis.
+
+### Supabase no Docker
+
+Com o Docker a correr e a CLI do Supabase instalada, corre na raiz do repositório:
+
+```bash
+supabase start -x studio,logflare,vector
+supabase status
+```
+
+O arranque aplica as migrações e carrega o exercício de exemplo. Usa o URL local da API e a chave pública devolvidos pela CLI em `apps/web/.env.local`. A caixa [Mailpit local](http://127.0.0.1:54324) recebe os links de entrada. Mantém o frontend em `127.0.0.1:5173` para o link de entrada regressar à aplicação.
+
+```bash
+npm run dev --workspace @mathutando/web -- --host 127.0.0.1 --strictPort
+```
 
 ## Ligar a um projeto Supabase
 
@@ -56,9 +73,9 @@ npm test
 npm run typecheck
 ```
 
-## Funcionalidades deste commit
+## Funcionalidades
 
-- Biblioteca com filtros de ano e tópico, leitura real do Supabase e pré-visualização de exercícios.
+- Biblioteca com pesquisa e filtros de ano e tópico, leitura real do Supabase e pré-visualização de exercícios.
 - Autenticação por email OTP (link de acesso) e saída de sessão.
 - Feed mínimo com publicação de um exercício existente e texto; comentários e rating de dificuldade associados a um exercício, para utilizadores autenticados.
 - Contrato público extensível de exercício com Zod; definições públicas **não incluem soluções**.

@@ -12,3 +12,5 @@ node_modules/
 *.iml
 supabase/.branches/
 supabase/.temp/
+
+*.tsbuildinfo
